@@ -14,7 +14,7 @@
 - [x] GitHub 仓库 `do-do026/qqbot-pro`（公开，main 分支）
 - [x] 开发环境：`SandboxPackage_DEV` skill 已安装（官方 types + 两份 guide + 42 个内置包示例）
 
-### M1 第一批：基础增强包 `com.operit.qqbot_pro`
+### M1 第一批：基础增强包 `com.operit.qqbot_pro`（v0.1.0）
 - [x] 包结构：manifest.json + dist/ + src/ + test/（ToolPkg 格式）
 - [x] **T01 撤回消息** `qqbot_pro_recall`（单聊/群聊 DELETE）
 - [x] **T02 Markdown 发送** `qqbot_pro_send`（msg_type=2）
@@ -27,6 +27,20 @@
 - [x] **真实安装验证**：`debug_install_toolpkg` 烧录成功，5 个工具全部注册
 - [x] 测试脚本：`test/smoke_core.js`（buildSendBody 逻辑）、`test/verify_live.js`（真实链路）
 - [x] 代码语法检查（node --check 全通过）
+
+### M1 第二批：增强版 Gateway（v0.2.0，T05 事件放开）
+- [x] **T05 事件放开**：增强版 Gateway（`qqbot_pro_gateway.py`）
+  - 事件白名单全放开：INTERACTION_CREATE / GROUP_MEMBER_ADD / GROUP_ADD_ROBOT 等
+  - INTERACTION_CREATE 的 scene 识别（c2c/group/guild，从 payload 判断）
+  - 事件体补充 interactionType / interactionData 字段（按钮回调可用）
+  - 独立控制端口 32146（与原包 32145 隔离）
+- [x] **qqbot_pro_gateway 子包**（6 个工具）：
+  - `qqbot_pro_gateway_start/stop/status`（服务管理）
+  - `qqbot_pro_receive_events`（事件队列读取，可过滤 scene/event_type）
+  - `qqbot_pro_clear_events`（清空队列）
+  - `qqbot_pro_respond_interaction`（PUT /interactions/{id} 回应按钮回调）
+- [x] v0.2.0 烧录成功：两个子包（basic + gateway）都已注册
+- [x] 注意：⚠️ 同 AppID 下增强版 Gateway 与原包 Gateway 二选一运行（会互踢）
 
 ---
 
