@@ -110,7 +110,8 @@
 7. **原包 Gateway 前缀过滤**：`should_queue_event` 用 `C2C_*`/`GROUP_*`/`FRIEND_*` 前缀匹配，所以 GROUP_MEMBER_ADD 等其实**已入队**；真正被挡的只有 INTERACTION_CREATE 等。增强版已全放开。
 8. **manifest 的 main 路径**：相对 ZIP 根目录（`dist/main.js`），subpackage entry 也相对根目录。
 9. **同 AppID 双 Gateway 互踢**：原包 + 增强版不可同时跑同一个 AppID，文档和工具描述里都要警告。
-10. **dev_package 与主目录双副本**：改代码要 cp 同步两边（src → dist → dev_package → 主目录 → GitHub），手动流程，容易漏。**已列入技术债**（未来加 build.sh）。
+10. **dev_package 与主目录双副本**：改代码要同步两边，手动流程容易漏。**已解决（2026-08-06）**：新增 `scripts/sync.sh` 一键同步（主目录→dev_package+语法检查），真相源统一为主目录。⚠️ 软链方案实测不可行：Android FUSE 文件系统 `ln -s` 报 Permission denied。
+11. **主目录是唯一真相源**：只编辑 `/sdcard/Download/qqbot-pro/package/`，dev_package 会被 sync.sh 覆盖，别直接改它。
 
 ### 4.3 技术债（详情见 STATUS.md 第4节）
 - 无 TS 类型声明、无自动构建脚本（dist 手动 cp）
@@ -123,23 +124,24 @@
 
 ## 5. 工作流程（新窗口照此执行）
 
-### 5.1 开发→烧录→同步→推送
+### 5.1 开发→烧录→同步→推送（真相源 = 主目录）
 ```bash
-# 1. 改代码：编辑 /sdcard/Download/Operit/dev_package/qqbot_pro/src/...
-# 2. 同步 dist（手写 JS，dist=src 拷贝）
-cp src/shared/*.js dist/shared/
-cp src/packages/*.js dist/packages/
-cp src/main.js dist/main.js
-# 3. 语法检查
-node --check dist/packages/xxx.js
-python3 -m py_compile resources/qqbot_pro_gateway.py
-# 4. 烧录进 Operit（关键一步）
-#    调用 operit_editor:debug_install_toolpkg, source_path=dev_package/qqbot_pro
-# 5. 同步主目录
-cp -r dev_package/qqbot_pro/* /sdcard/Download/qqbot-pro/package/
-# 6. 推送 GitHub（用 REST API，不要 git push！）
+# ⭐ 铁律：只编辑 /sdcard/Download/qqbot-pro/package/ 下的文件（唯一真相源）
+#   不要直接改 dev_package！dev_package 只是烧录副本，会被 sync.sh 覆盖。
+
+# 1. 改代码：编辑 /sdcard/Download/qqbot-pro/package/src/... 和 resources/...
+#    （dist 与 src 相同，手写 JS 无需编译；改完 src 也要 cp 到 dist，见 sync.sh）
+
+# 2. 一键同步 dev_package + 语法检查（关键一步）
+bash /sdcard/Download/qqbot-pro/scripts/sync.sh
+
+# 3. 烧录进 Operit
+#    调用 operit_editor:debug_install_toolpkg, source_path=/sdcard/Download/Operit/dev_package/qqbot_pro
+
+# 4. 推送 GitHub（用 REST API，不要 git push！）
 #    python3 脚本 base64 上传，更新已有文件先 GET sha
-# 7. 更新 STATUS.md / HANDOFF.md（每次迭代必须）
+
+# 5. 更新 STATUS.md / HANDOFF.md（每次迭代必须）
 ```
 
 ### 5.2 关键工具
@@ -182,7 +184,7 @@ cp -r dev_package/qqbot_pro/* /sdcard/Download/qqbot-pro/package/
 **资源重排建议**：
 - 若 API 额度紧张 → 优先 P0 验证 + M2（都便宜）
 - 若想尽快体验 → M3 流式（但要接受 2-3 工期的投入）
-- **开发目录统一**（消除双副本同步债）值得提前做：把 dev_package 改为软链或直接只用主目录，省每次 cp
+- ✅ 开发目录已统一（sync.sh 一键同步，真相源=主目录），双副本漂移债已消除
 
 ---
 
