@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "toolpkg_id": "com.operit.qqbot_pro",
+  "version": "0.1.0",
+  "main": "dist/main.js",
+  "display_name": {
+    "zh": "QQ Bot Pro 增强包",
+    "en": "QQ Bot Pro"
+  },
+  "description": {
+    "zh": "在 Operit 原 QQ Bot 工具包（com.operit.qqbot_bundle）基础上补齐官方 v2 API 能力的增强包。独立安装、独立配置，不修改原包。首批能力：撤回消息、Markdown/引用/输入态发送、群信息/机器人群状态/机器人资料查询。",
+    "en": "An enhancement bundle over Operit's QQ Bot bundle, adding official v2 APIs. Independent install, does not modify the original bundle. Initial capabilities: recall, markdown/reference/input-notify sending, group info / bot state / bot profile queries."
+  },
+  "enabled_by_default": true,
+  "subpackages": [
+    {
+      "id": "qqbot_pro_basic",
+      "entry": "dist/packages/qqbot_pro_basic.js"
+    }
+  ],
+  "resources": []
+}
